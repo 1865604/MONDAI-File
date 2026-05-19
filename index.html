@@ -1,9 +1,181 @@
-    <!-- スクリプト制御（ログイン認証制限と機能の統合版） -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNDI Local Workspace</title>
+    <!-- Google Material Icons -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-side: #ffffff; --primary: #1a73e8; 
+            --primary-hover: #1557b0; --text-main: #1e293b; --text-sub: #64748b;
+            --border: #e2e8f0; --shadow: 0 4px 12px rgba(0,0,0,0.05); --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; }
+        .app-view { display: none; width: 100%; height: 100%; }
+        .app-view.active { display: flex; }
+
+        /* 1. 認証画面 */
+        #authView { justify-content: center; align-items: center; background: linear-gradient(135deg, #eef2f7, #e0e7ff); width: 100%; }
+        .auth-card { background: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
+        .auth-logo { font-weight: bold; font-size: 28px; margin-bottom: 8px; }
+        .auth-subtitle { color: var(--text-sub); margin-bottom: 32px; font-size: 14px;}
+        .auth-input-group { text-align: left; margin-bottom: 20px; }
+        .auth-input-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-sub); }
+        .auth-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; outline: none; }
+        .auth-btn { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; cursor: pointer; }
+        .auth-toggle-link { margin-top: 20px; font-size: 14px; color: var(--primary); cursor: pointer; display: inline-block; }
+
+        /* 共通レイアウト */
+        .sidebar { width: 260px; background-color: var(--bg-side); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; flex-shrink: 0; }
+        .sidebar-logo { font-weight: bold; font-size: 22px; margin-bottom: 32px; display: flex; align-items: center; gap: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius); cursor: pointer; color: var(--text-sub); font-weight: 500; margin-bottom: 4px; }
+        .nav-item:hover, .nav-item.active { background-color: #f1f5f9; color: var(--primary); }
+        .sidebar-spacer { flex-grow: 1; }
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .top-bar { height: 64px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+        .view-title { font-size: 18px; font-weight: 600; }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--primary); }
+
+        .content-body { flex-grow: 1; overflow: hidden; display: none; flex-direction: column; }
+        .content-body.active { display: flex; }
+
+        /* ダッシュボード */
+        #dashboardContent { padding: 32px; overflow-y: auto; }
+        .creator-row { display: flex; gap: 20px; margin-bottom: 32px; }
+        .create-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 150px; text-align: center; cursor: pointer; box-shadow: var(--shadow); }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--text-sub); margin-bottom: 16px; margin-top: 16px;}
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .template-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; text-align: center; box-shadow: var(--shadow); font-size: 13px; font-weight: bold; }
+
+        /* エディタ共通ツールバー & カラーパレット */
+        .editor-toolbar { height: 48px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 8px; }
+        .color-palette { display: flex; gap: 4px; margin-left: 16px; align-items: center; }
+        .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid #cbd5e1; }
+        
+        .editor-container { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; background-color: #f1f5f9; }
+        .document-paper { background: white; width: 100%; max-width: 800px; min-height: 1000px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 60px 80px; outline: none; font-size: 16px; line-height: 1.6; }
+
+        /* スライドワークスペース */
+        .slide-workspace { flex-grow: 1; display: flex; background-color: #e2e8f0; overflow: hidden; }
+        .slide-sidebar { width: 180px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 10px; overflow-y: auto; }
+        .layout-option { padding: 10px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 12px; text-align: center; background: #f8fafc; margin-bottom: 2px; }
+        .layout-option:hover { border-color: var(--primary); }
+        
+        .theme-sidebar { width: 160px; background: white; border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 10px; }
+        .theme-option { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; text-align: center; font-size: 12px; font-weight: bold; }
+        
+        .slide-stage-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .slide-paper { background: white; width: 100%; aspect-ratio: 16/9; max-width: 700px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 40px; outline: none; font-size: 24px; display: grid; align-items: center; text-align: center; transition: all 0.3s; white-space: pre-line; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 認証画面 -->
+    <div id="authView" class="app-view active">
+        <div class="auth-card">
+            <div class="auth-logo">MNDI</div>
+            <div id="authSubtitle" class="auth-subtitle">ローカルワークスペースへログイン</div>
+            <div class="auth-input-group">
+                <label>メールアドレス</label>
+                <input type="email" id="emailInput" class="auth-input" value="admin@example.com">
+            </div>
+            <div class="auth-input-group">
+                <label>パスワード</label>
+                <input type="password" id="passwordInput" class="auth-input" value="123456">
+            </div>
+            <button class="auth-btn" id="submitBtn">ログインする</button>
+            <div class="auth-toggle-link" id="toggleAuthMode">初めてですか？ アカウントを作成する</div>
+        </div>
+    </div>
+
+    <!-- 2. メインアプリ画面 -->
+    <div id="mainView" class="app-view">
+        <div class="sidebar">
+            <div class="sidebar-logo"><span class="material-icons">folder</span> MNDI</div>
+            <div class="nav-item active" id="navDashboard"><span class="material-icons">dashboard</span>ダッシュボード</div>
+            <div class="nav-item" id="navDocEditor"><span class="material-icons">article</span>ドキュメント</div>
+            <div class="nav-item" id="navSlideEditor"><span class="material-icons">analytics</span>スライド</div>
+            <div class="sidebar-spacer"></div>
+            <div class="nav-item" id="logoutBtn" style="color: #ef4444;"><span class="material-icons">logout</span>ログアウト</div>
+        </div>
+
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="view-title" id="viewTitle">ダッシュボード</div>
+                <div class="user-profile"><div class="avatar" id="userAvatar">A</div><span id="userDisplayName">admin</span></div>
+            </div>
+
+            <!-- A. ダッシュボード -->
+            <div id="dashboardContent" class="content-body active">
+                <div class="section-title">新規作成</div>
+                <div class="creator-row">
+                    <div class="create-card" id="createDocBtn"><span class="material-icons" style="color:#1a73e8">article</span><br>新しい文書</div>
+                    <div class="create-card" id="createSlideBtn"><span class="material-icons" style="color:#f4b400">analytics</span><br>新しいスライド</div>
+                </div>
+                <div class="section-title">テンプレートから選ぶ</div>
+                <div class="template-grid">
+                    <div class="template-card" onclick="loadTpl('doc','ビジネス報告書\n【概要】\n【実績】\n【今後の課題】')">📄 ビジネス報告書</div>
+                    <div class="template-card" onclick="loadTpl('doc','履歴書\n【氏名】\n【職歴】\n【自己PR】')">📄 履歴書</div>
+                    <div class="template-card" onclick="loadTpl('slide','会社概要\n\n設立：2026年\n事業：ITツール開発')">📊 会社概要</div>
+                    <div class="template-card" onclick="loadTpl('slide','自己紹介\n\n名前：\n趣味：プログラム開発')">📊 自己紹介</div>
+                </div>
+            </div>
+
+            <!-- B. ドキュメントエディタ -->
+            <div id="docEditorContent" class="content-body">
+                <div class="editor-toolbar">
+                    <span>文字色 (12色):</span>
+                    <div class="color-palette" id="docColors"></div>
+                </div>
+                <div class="editor-container">
+                    <div class="document-paper" id="documentPaper" contenteditable="true">テキストを入力...</div>
+                </div>
+            </div>
+
+            <!-- C. スライドエディタ -->
+            <div id="slideEditorContent" class="content-body">
+                <div class="editor-toolbar">
+                    <span>文字色 (12色):</span>
+                    <div class="color-palette" id="slideColors"></div>
+                </div>
+                <div class="slide-workspace">
+                    <div class="slide-sidebar">
+                        <div class="section-title">レイアウト (10種)</div>
+                        <div class="layout-option" onclick="applyLayout('center')">1. 中央タイトル</div>
+                        <div class="layout-option" onclick="applyLayout('left')">2. 左寄せテキスト</div>
+                        <div class="layout-option" onclick="applyLayout('split')">3. 左右2カラム</div>
+                        <div class="layout-option" onclick="applyLayout('topTitle')">4. 上部タイトル</div>
+                        <div class="layout-option" onclick="applyLayout('bigStat')">5. 巨大数字強調</div>
+                        <div class="layout-option" onclick="applyLayout('quote')">6. 引用フレーズ</div>
+                        <div class="layout-option" onclick="applyLayout('grid3')">7. 3分割リスト</div>
+                        <div class="layout-option" onclick="applyLayout('darkHero')">8. 反転ヒーロー</div>
+                        <div class="layout-option" onclick="applyLayout('agenda')">9. 目次一覧</div>
+                        <div class="layout-option" onclick="applyLayout('caption')">10. 下部キャプション</div>
+                    </div>
+                    <div class="slide-stage-container">
+                        <div class="slide-paper" id="slidePaper" contenteditable="true">スライドテキスト</div>
+                    </div>
+                    <div class="theme-sidebar">
+                        <div class="section-title">背景テーマ</div>
+                        <div class="theme-option" style="background:#fff; color:#000;" onclick="setTheme('#fff','#000')">ライト</div>
+                        <div class="theme-option" style="background:#1e293b; color:#fff;" onclick="setTheme('#1e293b','#fff')">ダーク</div>
+                        <div class="theme-option" style="background:#f4ecd8; color:#5b4636;" onclick="setTheme('#f4ecd8','#5b4636')">セピア</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スクリプト制御（機能完全統合版） -->
     <script>
         const colors = ['#000000','#edf2f7','#ef4444','#f97316','#f59e0b','#10b981','#3b82f6','#6366f1','#a855f7','#ec4899','#64748b','#1e293b'];
         
         // 12色のパレット自動生成
-        function initColors(containerId, targetEl) {
+        function initColors(containerId) {
             const container = document.getElementById(containerId);
             colors.forEach(c => {
                 const dot = document.createElement('div');
@@ -13,56 +185,114 @@
                 container.appendChild(dot);
             });
         }
-        initColors('docColors', document.getElementById('documentPaper'));
-        initColors('slideColors', document.getElementById('slidePaper'));
+        initColors('docColors');
+        initColors('slideColors');
 
-        // ログイン・ナビ切り替え処理
+        // 各種要素の取得
         const submitBtn = document.getElementById('submitBtn');
+        const toggleAuthMode = document.getElementById('toggleAuthMode');
+        const authSubtitle = document.getElementById('authSubtitle');
         const mainView = document.getElementById('mainView');
         const authView = document.getElementById('authView');
         const emailInput = document.getElementById('emailInput');
         const passwordInput = document.getElementById('passwordInput');
         const userDisplayName = document.getElementById('userDisplayName');
         const userAvatar = document.getElementById('userAvatar');
+        const viewTitle = document.getElementById('viewTitle');
 
-        // 【修正】正しいログイン情報を判定する処理
+        let isLoginMode = true;
+
+        // 初期アカウントの登録（未設定時のみ）
+        if (!localStorage.getItem("admin@example.com")) {
+            localStorage.setItem("admin@example.com", "123456");
+        }
+
+        // ログイン・登録画面の切り替え
+        toggleAuthMode.onclick = () => {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                authSubtitle.textContent = 'ローカルワークスペースへログイン';
+                submitBtn.textContent = 'ログインする';
+                toggleAuthMode.textContent = '初めてですか？ アカウントを作成する';
+            } else {
+                authSubtitle.textContent = '新規アカウントの登録（自由に入力可能）';
+                submitBtn.textContent = '新規登録する';
+                toggleAuthMode.textContent = '既にアカウントをお持ちですか？ ログイン';
+            }
+        };
+
+        // ボタン実行（ログイン ＆ 新規登録処理）
         submitBtn.onclick = () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
-            // 正しいアカウント情報（ここを自由に変更できます）
-            const correctEmail = "admin@example.com";
-            const correctPassword = "123456";
+            if (!email || !password) {
+                alert('すべての項目を入力してください！');
+                return;
+            }
 
-            if (email === correctEmail && password === correctPassword) {
-                // 一致した場合はログイン成功
-                const userName = email.split('@')[0];
-                userDisplayName.textContent = userName;
-                userAvatar.textContent = userName.charAt(0).toUpperCase();
-
-                authView.classList.remove('active');
-                mainView.classList.add('active');
-                showSec('dashboard');
+            if (isLoginMode) {
+                const savedPassword = localStorage.getItem(email);
+                if (savedPassword && savedPassword === password) {
+                    loginSuccess(email);
+                } else {
+                    alert('メールアドレスまたはパスワードが間違っています！');
+                }
             } else {
-                // 間違っている場合は警告を表示してブロック
-                alert('メールアドレスまたはパスワードが間違っています！');
+                if (localStorage.getItem(email)) {
+                    alert('このメールアドレスは既に登録されています！');
+                    return;
+                }
+                localStorage.setItem(email, password);
+                alert('アカウントが作成されました！');
+                loginSuccess(email);
             }
         };
 
+        function loginSuccess(email) {
+            const userName = email.split('@')[0];
+            userDisplayName.textContent = userName;
+            userAvatar.textContent = userName.charAt(0).toUpperCase();
+            authView.classList.remove('active');
+            mainView.classList.add('active');
+            showSec('dashboard');
+        }
+
+        // ログアウト処理
         document.getElementById('logoutBtn').onclick = () => {
             mainView.classList.remove('active');
             authView.classList.add('active');
-            // ログアウト時に入力欄をリセット
             emailInput.value = '';
             passwordInput.value = '';
+            isLoginMode = true;
+            authSubtitle.textContent = 'ローカルワークスペースへログイン';
+            submitBtn.textContent = 'ログインする';
+            toggleAuthMode.textContent = '初めてですか？ アカウントを作成する';
         };
 
+        // 画面の切り替え処理
         function showSec(sec) {
             document.getElementById('dashboardContent').classList.remove('active');
             document.getElementById('docEditorContent').classList.remove('active');
             document.getElementById('slideEditorContent').classList.remove('active');
-            document.getElementById(sec + 'Content').classList.add('active');
-            document.getElementById('viewTitle').textContent = sec.toUpperCase();
+            
+            document.getElementById('navDashboard').classList.remove('active');
+            document.getElementById('navDocEditor').classList.remove('active');
+            document.getElementById('navSlideEditor').classList.remove('active');
+
+            if (sec === 'dashboard') {
+                document.getElementById('dashboardContent').classList.add('active');
+                document.getElementById('navDashboard').classList.add('active');
+                viewTitle.textContent = 'ダッシュボード';
+            } else if (sec === 'doc') {
+                document.getElementById('docEditorContent').classList.add('active');
+                document.getElementById('navDocEditor').classList.add('active');
+                viewTitle.textContent = 'ドキュメントエディタ';
+            } else if (sec === 'slide') {
+                document.getElementById('slideEditorContent').classList.add('active');
+                document.getElementById('navSlideEditor').classList.add('active');
+                viewTitle.textContent = 'スライドエディタ';
+            }
         }
 
         document.getElementById('navDashboard').onclick = () => showSec('dashboard');
@@ -73,8 +303,13 @@
 
         // テンプレート読み込み
         function loadTpl(type, txt) {
-            if(type==='doc') { document.getElementById('documentPaper').innerText = txt; showSec('doc'); }
-            else { document.getElementById('slidePaper').innerText = txt; showSec('slide'); }
+            if(type==='doc') { 
+                document.getElementById('documentPaper').innerText = txt; 
+                showSec('doc'); 
+            } else { 
+                document.getElementById('slidePaper').innerText = txt; 
+                showSec('slide'); 
+            }
         }
 
         // 背景切り替え
@@ -102,3 +337,5 @@
             else if (type === 'agenda') { p.innerText = 'ーー 目次 ーー\n1. はじめに\n2. 課題定義\n3. 解決策\n4. 今後の展望'; }
         }
     </script>
+</body>
+</html>
