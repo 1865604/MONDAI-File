@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MNDI Local Workspace</title>
-    <!-- アイコン用CSSリンク -->
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         :root {
@@ -146,8 +145,8 @@
                 <div class="editor-toolbar">
                     <input type="text" id="docTitleInput" class="title-input" placeholder="文書のタイトル">
                     <button class="action-btn" id="saveDocBtn" style="background:#10b981;">💾 保存して閉じる</button>
-                    <!-- 🔥 ダウンロード機能追加 -->
-                    <button class="action-btn" id="downloadDocBtn" style="background:#f4b400;">📥 ファイル保存 (DL)</button>
+                    <!-- 🔥 機能追加：端末へのダウンロード用ボタン -->
+                    <button class="action-btn" id="downloadDocBtn" style="background:#f39c12;">📥 iPadへ書き出し</button>
                     <button class="action-btn" id="addDocPageBtn">📄 ページ追加</button>
                     <span>文字色:</span>
                     <div class="color-palette" id="docColors"></div>
@@ -162,8 +161,8 @@
                 <div class="editor-toolbar">
                     <input type="text" id="slideTitleInput" class="title-input" placeholder="スライドのタイトル">
                     <button class="action-btn" id="saveSlideBtn" style="background:#10b981;">💾 保存して閉じる</button>
-                    <!-- 🔥 ダウンロード機能追加 -->
-                    <button class="action-btn" id="downloadSlideBtn" style="background:#f4b400;">📥 ファイル保存 (DL)</button>
+                    <!-- 🔥 機能追加：端末へのダウンロード用ボタン -->
+                    <button class="action-btn" id="downloadSlideBtn" style="background:#f39c12;">📥 iPadへ書き出し</button>
                     <button class="action-btn" id="addSlidePageBtn" style="background:#f4b400;">➕ スライド追加</button>
                     <button class="action-btn" id="startShowBtn" style="background:#6366f1;">▶ スライドショー</button>
                     <span>文字色:</span>
@@ -256,7 +255,7 @@
         }
         document.getElementById('logoutBtn').onclick = () => { mainView.style.display = 'none'; authView.style.display = 'flex'; };
 
-        // 🛠️ 修正済：100%動く正常な画面切り替え関数
+        // 🛠️ 重複記述（style.style）を完全に修理！iPadでも確実に全画面が切り替わります
         function showSec(sec) {
             document.getElementById('dashboardContent').style.display = 'none';
             document.getElementById('docEditorContent').style.display = 'none';
@@ -333,29 +332,30 @@
             showSec('dashboard');
         }
 
-        // 🔥 【新機能】iPadのファイルアプリや各種クラウドへエクスポート（ダウンロード）する機能
-        function triggerDownload(filename, text) {
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-            element.setAttribute('download', filename);
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
+        // 🔥 【新機能】端末へのダウンロード（Appleファイル / Googleドライブ等へ直接エクスポート）
+        function downloadBlob(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         document.getElementById('downloadDocBtn').onclick = () => {
-            const title = document.getElementById('docTitleInput').value.trim() || '無題の文書';
-            const text = document.getElementById('documentPaper').innerText;
-            triggerDownload(title + '.txt', text);
+            const title = document.getElementById('docTitleInput').value.trim() || '文書';
+            const textContent = document.getElementById('documentPaper').innerText;
+            downloadBlob(textContent, `${title}.txt`, 'text/plain;charset=utf-8');
         };
 
         document.getElementById('downloadSlideBtn').onclick = () => {
             saveCurrentSlideText();
-            const title = document.getElementById('slideTitleInput').value.trim() || '無題のスライド';
-            // スライドの内容を改行で区切って綺麗にテキスト化
-            const text = slidesData.map((t, idx) => `--- スライド ${idx + 1} ---\n${t}`).join('\n\n');
-            triggerDownload(title + '.txt', text);
+            const title = document.getElementById('slideTitleInput').value.trim() || 'スライド';
+            // スライドの内容を読みやすいテキスト形式に並べて出力
+            let slideTextOutput = `【${title}】\n\n`;
+            slidesData.forEach((text, i) => { slideTextOutput += `--- スライド ${i+1} ---\n${text}\n\n`; });
+            downloadBlob(slideTextOutput, `${title}.txt`, 'text/plain;charset=utf-8');
         };
 
         function openFile(id) {
@@ -415,7 +415,4 @@
         }
         function setTheme(bg, fg) { slideBg = bg; slideFg = fg; const p = document.getElementById('slidePaper'); if(p) { p.style.backgroundColor = bg; p.style.color = fg; } }
         function applyLayout(type) {
-            const p = document.getElementById('slidePaper'); if(!p) return;
-            if (type === 'center') p.innerText = '【タイトル】\nここに中央サブタイトル';
-            else if (type === 'left') p.innerText = '■ 見出し\n・テキスト1\n・テキスト2';
-            else if (type === 'split') p.innerText = '左のカラム  
+            const p = document.getElementById('slidePaper'); if(!p)
