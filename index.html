@@ -146,6 +146,8 @@
                 <div class="editor-toolbar">
                     <input type="text" id="docTitleInput" class="title-input" placeholder="文書のタイトル">
                     <button class="action-btn" id="saveDocBtn" style="background:#10b981;">💾 保存して閉じる</button>
+                    <!-- 🔥 ダウンロード機能追加 -->
+                    <button class="action-btn" id="downloadDocBtn" style="background:#f4b400;">📥 ファイル保存 (DL)</button>
                     <button class="action-btn" id="addDocPageBtn">📄 ページ追加</button>
                     <span>文字色:</span>
                     <div class="color-palette" id="docColors"></div>
@@ -160,6 +162,8 @@
                 <div class="editor-toolbar">
                     <input type="text" id="slideTitleInput" class="title-input" placeholder="スライドのタイトル">
                     <button class="action-btn" id="saveSlideBtn" style="background:#10b981;">💾 保存して閉じる</button>
+                    <!-- 🔥 ダウンロード機能追加 -->
+                    <button class="action-btn" id="downloadSlideBtn" style="background:#f4b400;">📥 ファイル保存 (DL)</button>
                     <button class="action-btn" id="addSlidePageBtn" style="background:#f4b400;">➕ スライド追加</button>
                     <button class="action-btn" id="startShowBtn" style="background:#6366f1;">▶ スライドショー</button>
                     <span>文字色:</span>
@@ -252,7 +256,7 @@
         }
         document.getElementById('logoutBtn').onclick = () => { mainView.style.display = 'none'; authView.style.display = 'flex'; };
 
-        // 🛠️ 【タイポ完全修正済】style.style の重ね記述を完全に直し、一撃で画面が切り替わるように修理
+        // 🛠️ 修正済：100%動く正常な画面切り替え関数
         function showSec(sec) {
             document.getElementById('dashboardContent').style.display = 'none';
             document.getElementById('docEditorContent').style.display = 'none';
@@ -329,6 +333,31 @@
             showSec('dashboard');
         }
 
+        // 🔥 【新機能】iPadのファイルアプリや各種クラウドへエクスポート（ダウンロード）する機能
+        function triggerDownload(filename, text) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        document.getElementById('downloadDocBtn').onclick = () => {
+            const title = document.getElementById('docTitleInput').value.trim() || '無題の文書';
+            const text = document.getElementById('documentPaper').innerText;
+            triggerDownload(title + '.txt', text);
+        };
+
+        document.getElementById('downloadSlideBtn').onclick = () => {
+            saveCurrentSlideText();
+            const title = document.getElementById('slideTitleInput').value.trim() || '無題のスライド';
+            // スライドの内容を改行で区切って綺麗にテキスト化
+            const text = slidesData.map((t, idx) => `--- スライド ${idx + 1} ---\n${t}`).join('\n\n');
+            triggerDownload(title + '.txt', text);
+        };
+
         function openFile(id) {
             const file = filesData.find(f => f.id === id); if (!file) return;
             activeFileId = file.id;
@@ -389,14 +418,4 @@
             const p = document.getElementById('slidePaper'); if(!p) return;
             if (type === 'center') p.innerText = '【タイトル】\nここに中央サブタイトル';
             else if (type === 'left') p.innerText = '■ 見出し\n・テキスト1\n・テキスト2';
-            else if (type === 'split') p.innerText = '左のカラム  |  右のカラム';
-            saveCurrentSlideText();
-        }
-
-        // 初期カラーパレット・サムネイル展開
-        initColors('docColors'); 
-        initColors('slideColors');
-        renderThumbs();
-    </script>
-</body>
-</html>
+            else if (type === 'split') p.innerText = '左のカラム  
