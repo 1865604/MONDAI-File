@@ -12,7 +12,7 @@
             --border: #e2e8f0; --shadow: 0 4px 12px rgba(0,0,0,0.05); --radius: 12px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; }
+        body { font-family: sans-serif; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; -webkit-tap-highlight-color: transparent; }
         .app-view { display: none; width: 100%; height: 100%; }
         .app-view.active { display: flex; }
 
@@ -51,23 +51,22 @@
         .template-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; text-align: center; box-shadow: var(--shadow); font-size: 13px; font-weight: bold; }
 
         /* ツールバー & パレット */
-        .editor-toolbar { height: 48px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+        .editor-toolbar { height: 48px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; user-select: none; }
         .color-palette { display: flex; gap: 4px; align-items: center; }
-        .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid #cbd5e1; }
-        .action-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .action-btn:hover { background: var(--primary-hover); }
+        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #cbd5e1; touch-action: manipulation; }
+        .action-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; touch-action: manipulation; }
 
-        .editor-container { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; background-color: #f1f5f9; }
-        .document-paper { background: white; width: 100%; max-width: 800px; min-height: 1000px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 60px 80px; outline: none; font-size: 16px; line-height: 1.6; }
+        .editor-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; background-color: #f1f5f9; }
+        .document-paper { background: white; width: 100%; max-width: 800px; min-height: 800px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 40px; outline: none; font-size: 16px; line-height: 1.6; }
 
         /* スライド */
         .slide-workspace { flex-grow: 1; display: flex; background-color: #e2e8f0; overflow: hidden; }
-        .slide-sidebar { width: 180px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 10px; overflow-y: auto; }
+        .slide-sidebar { width: 180px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 10px; overflow-y: auto; user-select: none; }
         .slide-thumb-item { padding: 10px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 12px; text-align: center; background: #f8fafc; }
         .slide-thumb-item.active { border-color: var(--primary); background: #eff6ff; font-weight: bold; }
         .layout-option { padding: 6px; border: 1px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 11px; text-align: center; margin-top: 4px; }
         
-        .theme-sidebar { width: 160px; background: white; border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 10px; }
+        .theme-sidebar { width: 160px; background: white; border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 10px; user-select: none; }
         .theme-option { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; text-align: center; font-size: 12px; font-weight: bold; }
         
         .slide-stage-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -76,7 +75,7 @@
         /* 全画面スライドショー用 */
         .presentation-mode { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 9999; display: none; justify-content: center; align-items: center; }
         .presentation-mode.active { display: flex; }
-        .presentation-slide { background: white; width: 90vw; aspect-ratio: 16/9; max-width: 1200px; display: grid; align-items: center; text-align: center; font-size: 48px; padding: 60px; box-shadow: 0 0 30px rgba(255,255,255,0.2); outline: none; }
+        .presentation-slide { background: white; width: 90vw; aspect-ratio: 16/9; max-width: 1200px; display: grid; align-items: center; text-align: center; font-size: 44px; padding: 40px; box-shadow: 0 0 30px rgba(255,255,255,0.2); outline: none; }
     </style>
 </head>
 <body>
@@ -148,16 +147,14 @@
             <div id="slideEditorContent" class="content-body">
                 <div class="editor-toolbar">
                     <button class="action-btn" id="addSlidePageBtn" style="background:#f4b400;">➕ スライド追加</button>
-                    <button class="action-btn" id="startShowBtn" style="background:#10b981;">▶ スライドショー (全画面)</button>
+                    <button class="action-btn" id="startShowBtn" style="background:#10b981;">▶ スライドショー</button>
                     <span>文字色:</span>
                     <div class="color-palette" id="slideColors"></div>
                 </div>
                 <div class="slide-workspace">
                     <div class="slide-sidebar">
                         <div class="section-title">ページ一覧</div>
-                        <div id="slideThumbList">
-                            <!-- スライドのサムネイルが自動追加されます -->
-                        </div>
+                        <div id="slideThumbList"></div>
                         <div class="section-title" style="margin-top:10px;">クイック配置</div>
                         <div class="layout-option" onclick="applyLayout('center')">中央見出し</div>
                         <div class="layout-option" onclick="applyLayout('left')">左寄せリスト</div>
@@ -183,23 +180,47 @@
     </div>
 
     <script>
-        const colors = ['#000000','#ef4444','#f97316','#f59e0b','#10b981','#3b82f6','#6366f1','#a855f7','#64748b'];
-        
-        // 12色のパレット自動生成
+        const colors = ['#000000','#ef4444','#f97316','#f59e0b','#10b981','#3b82f6','#6366f1','#a855f7','#64748b','#1e293b','#fff0f5','#e6f7f0'];
+        let lastSelection = null;
+
+        // iPad対応：文字選択を記憶する
+        function saveSelection() {
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                lastSelection = sel.getRangeAt(0).cloneRange();
+            }
+        }
+        document.addEventListener('selectionchange', saveSelection);
+
+        // iPad対応：記憶した選択範囲に色を適用する
+        function changeColor(color) {
+            const sel = window.getSelection();
+            if (lastSelection) {
+                sel.removeAllRanges();
+                sel.addRange(lastSelection);
+            }
+            document.execCommand('foreColor', false, color);
+        }
+
+        // 12色のパレット生成
         function initColors(containerId) {
             const container = document.getElementById(containerId);
             colors.forEach(c => {
                 const dot = document.createElement('div');
                 dot.className = 'color-dot';
                 dot.style.backgroundColor = c;
-                dot.onclick = () => { document.execCommand('foreColor', false, c); };
+                // iPadで選択解除を防ぐため pointerdown (または touchstart) を使用
+                dot.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    changeColor(c);
+                });
                 container.appendChild(dot);
             });
         }
         initColors('docColors');
         initColors('slideColors');
 
-        // 要素取得
+        // 各種ログイン・表示切り替え処理
         const submitBtn = document.getElementById('submitBtn');
         const toggleAuthMode = document.getElementById('toggleAuthMode');
         const authSubtitle = document.getElementById('authSubtitle');
@@ -266,7 +287,7 @@
         document.getElementById('createDocBtn').onclick = () => showSec('doc');
         document.getElementById('createSlideBtn').onclick = () => showSec('slide');
 
-        // 【機能追加】ドキュメントのページを増やす
+        // ドキュメントのページを増やす
         document.getElementById('addDocPageBtn').onclick = () => {
             const newPage = document.createElement('div');
             newPage.className = 'document-paper';
@@ -276,7 +297,7 @@
             document.getElementById('docContainer').appendChild(newPage);
         };
 
-        // 【機能追加】スライド管理システム（複数枚追加・スライドショー）
+        // スライド複数枚管理
         let slidesData = ['スライド 1 のテキスト'];
         let currentSlideIdx = 0;
         let slideBg = '#ffffff', slideFg = '#000000';
@@ -287,7 +308,7 @@
             slidesData.forEach((content, idx) => {
                 const thumb = document.createElement('div');
                 thumb.className = `slide-thumb-item ${idx === currentSlideIdx ? 'active' : ''}`;
-                thumb.innerText = `枚目: スライド ${idx + 1}`;
+                thumb.innerText = `スライド ${idx + 1}`;
                 thumb.onclick = () => {
                     saveCurrentSlideText();
                     currentSlideIdx = idx;
@@ -298,13 +319,8 @@
             });
         }
 
-        function saveCurrentSlideText() {
-            slidesData[currentSlideIdx] = document.getElementById('slidePaper').innerText;
-        }
-
-        function loadCurrentSlideText() {
-            document.getElementById('slidePaper').innerText = slidesData[currentSlideIdx];
-        }
+        function saveCurrentSlideText() { slidesData[currentSlideIdx] = document.getElementById('slidePaper').innerText; }
+        function loadCurrentSlideText() { document.getElementById('slidePaper').innerText = slidesData[currentSlideIdx]; }
 
         document.getElementById('addSlidePageBtn').onclick = () => {
             saveCurrentSlideText();
@@ -314,10 +330,9 @@
             renderThumbs();
         };
 
-        // スライド同期用イベント
         document.getElementById('slidePaper').oninput = () => { saveCurrentSlideText(); };
 
-        // 全画面スライドショーモードの処理
+        // 全画面スライドショー
         let isPresentation = false;
         const presView = document.getElementById('presentationMode');
         const presSlide = document.getElementById('presentationSlide');
@@ -336,14 +351,26 @@
             presSlide.style.color = slideFg;
         }
 
-        // キーボードとめくり操作
         window.addEventListener('keydown', (e) => {
             if (!isPresentation) return;
-            if (e.key === 'Escape') { isPresentation = false; presView.classList.remove('active'); renderThumbs(); loadCurrentSlideText(); }
-            if (e.key === 'ArrowRight' || e.key === ' ') { if(currentSlideIdx < slidesData.length - 1) { currentSlideIdx++; updatePresSlide(); } }
-            if (e.key === 'ArrowLeft') { if(currentSlideIdx > 0) { currentSlideIdx--; updatePresSlide(); } }
+            if (e.key === 'Escape') { quitPres(); }
+            if (e.key === 'ArrowRight' || e.key === ' ') { nextPres(); }
+            if (e.key === 'ArrowLeft') { prevPres(); }
         });
-        presView.onclick = () => { if(currentSlideIdx < slidesData.length - 1) { currentSlideIdx++; updatePresSlide(); } else { isPresentation = false; presView.classList.remove('active'); renderThumbs(); loadCurrentSlideText(); } };
+
+        // iPad用：タップで進む・スワイプの代わりに簡易めくり
+        presView.onclick = () => { nextPres(); };
+
+        function nextPres() {
+            if(currentSlideIdx < slidesData.length - 1) { currentSlideIdx++; updatePresSlide(); } 
+            else { quitPres(); }
+        }
+        function prevPres() {
+            if(currentSlideIdx > 0) { currentSlideIdx--; updatePresSlide(); }
+        }
+        function quitPres() {
+            isPresentation = false; presView.classList.remove('active'); renderThumbs(); loadCurrentSlideText();
+        }
 
         function loadTpl(type, txt) {
             if(type==='doc') { document.getElementById('documentPaper').innerText = txt; showSec('doc'); }
@@ -364,7 +391,6 @@
             saveCurrentSlideText();
         }
 
-        // 初回読み込み
         renderThumbs();
     </script>
 </body>
