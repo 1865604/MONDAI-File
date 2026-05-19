@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MNDI Local Workspace</title>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <!-- アイコン用CSSリンク -->
+    <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         :root {
             --bg-main: #f8fafc; --bg-side: #ffffff; --primary: #1a73e8; 
@@ -85,7 +86,7 @@
 </head>
 <body>
 
-    <!-- 1. 認証画面 (初期表示：flex) -->
+    <!-- 1. 認証画面 -->
     <div id="authView" class="app-view" style="display: flex;">
         <div class="auth-card">
             <div class="auth-logo">MNDI</div>
@@ -103,7 +104,7 @@
         </div>
     </div>
 
-    <!-- 2. メインアプリ画面 (初期表示：none) -->
+    <!-- 2. メインアプリ画面 -->
     <div id="mainView" class="app-view" style="display: none;">
         <div class="sidebar">
             <div class="sidebar-logo"><span class="material-icons">folder</span> MNDI</div>
@@ -120,7 +121,7 @@
                 <div class="user-profile"><div class="avatar" id="userAvatar">A</div><span id="userDisplayName">admin</span></div>
             </div>
 
-            <!-- A. ダッシュボード (初期表示：flex) -->
+            <!-- A. ダッシュボード -->
             <div id="dashboardContent" class="content-body" style="display: flex;">
                 <div class="section-title">新規作成</div>
                 <div class="creator-row">
@@ -251,7 +252,7 @@
         }
         document.getElementById('logoutBtn').onclick = () => { mainView.style.display = 'none'; authView.style.display = 'flex'; };
 
-        // 🔥 【安全ガード変更】iPadで100%動くように、displayプロパティを直接書き換えて画面を制御する
+        // 🛠️ 【タイポ完全修正済】style.style の重ね記述を完全に直し、一撃で画面が切り替わるように修理
         function showSec(sec) {
             document.getElementById('dashboardContent').style.display = 'none';
             document.getElementById('docEditorContent').style.display = 'none';
@@ -267,12 +268,10 @@
                 viewTitle.textContent = 'ダッシュボード';
                 renderFiles();
             } else if(sec === 'doc') {
-                document.getElementById('docEditorContent').style.style.display = 'flex'; // iPad専用安全記述
                 document.getElementById('docEditorContent').style.display = 'flex';
                 document.getElementById('navDocEditor').classList.add('active');
                 viewTitle.textContent = 'ドキュメントエディタ';
             } else if(sec === 'slide') {
-                document.getElementById('slideEditorContent').style.style.display = 'flex'; // iPad専用安全記述
                 document.getElementById('slideEditorContent').style.display = 'flex';
                 document.getElementById('navSlideEditor').classList.add('active');
                 viewTitle.textContent = 'スライドエディタ';
@@ -394,7 +393,7 @@
             saveCurrentSlideText();
         }
 
-        // 実行開始
+        // 初期カラーパレット・サムネイル展開
         initColors('docColors'); 
         initColors('slideColors');
         renderThumbs();
