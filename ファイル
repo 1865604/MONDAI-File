@@ -10,7 +10,7 @@
         :root {
             --bg-main: #f8fafc;
             --bg-side: #ffffff;
-            --primary: #1a73e8; /* Google Blue / Windows Accent */
+            --primary: #1a73e8; /* Windows & Google風アクセント */
             --primary-hover: #1557b0;
             --text-main: #1e293b;
             --text-sub: #64748b;
@@ -34,7 +34,7 @@
         .app-view.active { display: flex; }
 
         /* ==========================================================================
-           1. 認証画面 (Auth View - ログイン & 新規登録)
+           1. 認証画面（サインイン / サインアップ共通）
            ========================================================================== */
         #authView {
             justify-content: center;
@@ -57,7 +57,7 @@
             margin-bottom: 8px;
             color: #0f172a;
         }
-        .auth-subtitle { color: var(--text-sub); margin-bottom: 24px; font-size: 14px;}
+        .auth-subtitle { color: var(--text-sub); margin-bottom: 32px; font-size: 14px;}
         .auth-input-group { text-align: left; margin-bottom: 20px; }
         .auth-input-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-sub); }
         .auth-input {
@@ -85,20 +85,15 @@
         }
         .auth-btn:hover { background-color: var(--primary-hover); }
         
-        /* ログイン/新規登録の切り替えリンク */
-        .auth-switch {
+        /* 新規登録・ログイン切り替えリンク */
+        .auth-toggle-link {
             margin-top: 20px;
             font-size: 14px;
-            color: var(--text-sub);
-        }
-        .auth-switch span {
             color: var(--primary);
             cursor: pointer;
-            font-weight: 600;
+            display: inline-block;
         }
-        .auth-switch span:hover {
-            text-decoration: underline;
-        }
+        .auth-toggle-link:hover { text-decoration: underline; }
 
         /* ==========================================================================
            共通レイアウト (Sidebar & Main)
@@ -160,7 +155,7 @@
         .avatar { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--primary); text-transform: uppercase;}
 
         /* ==========================================================================
-           2. ダッシュボード画面 (Dashboard View)
+           2. ダッシュボード画面
            ========================================================================== */
         .dashboard-body { padding: 32px; overflow-y: auto; flex-grow: 1; }
         .creator-row { display: flex; gap: 20px; margin-bottom: 40px; }
@@ -197,7 +192,7 @@
         .file-date { font-size: 12px; color: var(--text-sub); }
 
         /* ==========================================================================
-           3. ドキュメントエディタ (Doc Editor View)
+           3. ドキュメントエディタ
            ========================================================================== */
         .editor-toolbar {
             height: 48px;
@@ -240,7 +235,7 @@
         }
 
         /* ==========================================================================
-           4. スライドエディタ (Slide Editor View)
+           4. スライドエディタ
            ========================================================================== */
         .slide-workspace { flex-grow: 1; display: flex; background-color: #e2e8f0; overflow: hidden; }
         .slide-sidebar {
@@ -302,29 +297,27 @@
 <body>
 
     <!-- ==========================================
-       1. 認証画面（新規登録 / ログイン 兼用）
+       1. 認証画面（ログイン / 新規登録）
        ========================================== -->
     <div id="authView" class="app-view active">
-        <div class="auth-card" id="authCard">
+        <div class="auth-card">
             <div class="auth-logo">MNDI Workspace</div>
-            <div class="auth-subtitle" id="authSubtitle">アカウントにログインして開始します</div>
+            <div id="authSubtitle" class="auth-subtitle">アカウントにログインして開始します</div>
             
             <div class="auth-input-group">
                 <label>メールアドレス</label>
-                <input type="email" class="auth-input" id="authEmail" placeholder="example@domain.com">
+                <input type="email" class="auth-input" id="authEmail" value="demo@monndai.com">
             </div>
             <div class="auth-input-group">
                 <label>パスワード</label>
-                <input type="password" class="auth-input" id="authPassword" placeholder="パスワードを入力">
+                <input type="password" class="auth-input" id="authPassword" value="password123">
             </div>
             
-            <!-- 動的に切り替わるメインボタン -->
-            <button class="auth-btn" id="authMainBtn" onclick="handleAuthSubmit()">ログイン</button>
+            <!-- サインイン/アップ用メインボタン -->
+            <button class="auth-btn" id="authSubmitBtn" onclick="handleAuth()">ログイン</button>
             
-            <!-- 新規登録とログインの切り替えリンク -->
-            <div class="auth-switch" id="authSwitchArea">
-                アカウントをお持ちでないですか？ <span onclick="toggleAuthMode(true)">新規登録</span>
-            </div>
+            <!-- モード切り替えリンク -->
+            <div class="auth-toggle-link" id="authToggleLink" onclick="toggleAuthMode()">初めてですか？ アカウントを作成する</div>
         </div>
     </div>
 
@@ -343,8 +336,8 @@
             <div class="top-bar">
                 <div class="view-title">マイ ドライブ</div>
                 <div class="user-profile">
-                    <span id="userDisplayName">-</span>
-                    <div class="avatar" id="userAvatar">U</div>
+                    <span id="userDisplayName">demo@monndai.com</span>
+                    <div class="avatar" id="userAvatar">D</div>
                 </div>
             </div>
             <div class="dashboard-body">
@@ -382,10 +375,6 @@
                 <button class="toolbar-btn" onclick="document.execCommand('bold')"><span class="material-icons">format_bold</span></button>
                 <button class="toolbar-btn" onclick="document.execCommand('italic')"><span class="material-icons">format_italic</span></button>
                 <button class="toolbar-btn" onclick="document.execCommand('underline')"><span class="material-icons">format_underlined</span></button>
-                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 8px;"></div>
-                <button class="toolbar-btn" onclick="document.execCommand('justifyLeft')"><span class="material-icons">format_align_left</span></button>
-                <button class="toolbar-btn" onclick="document.execCommand('justifyCenter')"><span class="material-icons">format_align_center</span></button>
-                <button class="toolbar-btn" onclick="document.execCommand('justifyRight')"><span class="material-icons">format_align_right</span></button>
             </div>
             <div class="editor-container">
                 <div class="document-paper" contenteditable="true" id="docBody"></div>
@@ -429,102 +418,81 @@
 
     <script>
         // ==========================================================================
-        // 状態管理 & 擬似データベース (LocalStorageシステム)
+        // 認証ロジック & 状態管理
         // ==========================================================================
-        let isSignUpMode = false; // 新規登録モード判定フラグ
-        let currentUser = null;   // 現在ログインしているユーザーのメールアドレス
-        let userFiles = [];       // 現在のユーザーのファイルリスト
+        let isSignUpMode = false; // false = ログインモード, true = 新規登録モード
+        let registeredUsers = {
+            'demo@monndai.com': 'password123' // デモ用の初期ユーザー
+        };
 
-        // ローカルストレージからユーザーのアカウント一覧を取得
-        function getRegisteredUsers() {
-            const users = localStorage.getItem('mndi_users');
-            return users ? JSON.parse(users) : {};
-        }
+        let currentUser = null;
+        let files = [
+            { id: '1', name: '2026年度 事業計画書', type: 'doc', date: '2026/05/10', content: 'これは事前に用意されたデモドキュメントです。自由に書き換えてください。' }
+        ];
+        let currentEditingFile = null;
 
-        // ==========================================================================
-        // 認証画面の制御（ログイン ⇄ 新規登録 切り替え）
-        // ==========================================================================
-        function toggleAuthMode(toSignUp) {
-            isSignUpMode = toSignUp;
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
             const subtitle = document.getElementById('authSubtitle');
-            const mainBtn = document.getElementById('authMainBtn');
-            const switchArea = document.getElementById('authSwitchArea');
-            
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleLink = document.getElementById('authToggleLink');
+
             if (isSignUpMode) {
-                subtitle.innerText = '新しいワークスペースアカウントを作成します';
-                mainBtn.innerText = 'アカウントを作成';
-                switchArea.innerHTML = 'すでにアカウントをお持ちですか？ <span onclick="toggleAuthMode(false)">ログイン</span>';
+                subtitle.innerText = '新しいWorkspaceアカウントを作成します';
+                submitBtn.innerText = 'アカウントを新規登録';
+                toggleLink.innerText = 'すでにアカウントをお持ちですか？ ログイン';
             } else {
                 subtitle.innerText = 'アカウントにログインして開始します';
-                mainBtn.innerText = 'ログイン';
-                switchArea.innerHTML = 'アカウントをお持ちでないですか？ <span onclick="toggleAuthMode(true)">新規登録</span>';
+                submitBtn.innerText = 'ログイン';
+                toggleLink.innerText = '初めてですか？ アカウントを作成する';
             }
         }
 
-        function handleAuthSubmit() {
+        function handleAuth() {
             const email = document.getElementById('authEmail').value.trim();
-            const password = document.getElementById('authPassword').value.trim();
+            const password = document.getElementById('authPassword').value;
 
             if (!email || !password) {
-                alert('メールアドレスとパスワードを入力してください。');
+                alert('メールアドレスとパスワードを入力してください');
                 return;
             }
 
-            const users = getRegisteredUsers();
-
             if (isSignUpMode) {
-                // --- 新規登録ロジック ---
-                if (users[email]) {
-                    alert('このメールアドレスは既に登録されています。');
-                    return;
+                // 新規登録処理
+                if (registeredUsers[email]) {
+                    alert('このメールアドレスは既に登録されています');
+                } else {
+                    registeredUsers[email] = password;
+                    alert('登録が完了しました！自動ログインします。');
+                    successLogin(email);
                 }
-                // パスワードと、ユーザーごとの初期空のファイル枠を作成
-                users[email] = { password: password, files: [
-                    { id: 'init-1', name: 'ようこそ！最初のドキュメント', type: 'doc', date: new Date().toLocaleDateString(), content: '<h2>MNDI Workspace へようこそ！</h2><p>これは自動で作成された最初のドキュメントです。自由に編集を行ってください。</p>' }
-                ]};
-                localStorage.setItem('mndi_users', JSON.stringify(users));
-                alert('アカウントの作成が完了しました！そのままログインします。');
             } else {
-                // --- ログインロジック ---
-                if (!users[email] || users[email].password !== password) {
-                    alert('メールアドレスまたはパスワードが正しくありません。');
-                    return;
+                // ログイン処理
+                if (registeredUsers[email] && registeredUsers[email] === password) {
+                    successLogin(email);
+                } else {
+                    alert('メールアドレス、またはパスワードが正しくありません');
                 }
             }
+        }
 
-            // 認証成功時の処理
+        function successLogin(email) {
             currentUser = email;
             document.getElementById('userDisplayName').innerText = email;
             document.getElementById('userAvatar').innerText = email.charAt(0);
-            
-            // ユーザーデータの読み込み
-            userFiles = users[email].files || [];
-            
             renderFileGrid();
             switchView('dashboardView');
         }
 
         function logout() {
             currentUser = null;
-            userFiles = [];
             document.getElementById('authEmail').value = '';
             document.getElementById('authPassword').value = '';
-            toggleAuthMode(false);
             switchView('authView');
         }
 
-        // データの永続化（LocalStorageへの保存）
-        function saveUserData() {
-            if (!currentUser) return;
-            const users = getRegisteredUsers();
-            if (users[currentUser]) {
-                users[currentUser].files = userFiles;
-                localStorage.setItem('mndi_users', JSON.stringify(users));
-            }
-        }
-
         // ==========================================================================
-        // 画面遷移管理
+        // 画面切り替え & エディタ統括
         // ==========================================================================
         function switchView(viewId) {
             document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
@@ -539,31 +507,15 @@
                 if (currentEditingFile.type === 'doc') {
                     currentEditingFile.content = document.getElementById('docBody').innerHTML;
                 }
-                // ファイル配列に変更を反映させて保存
-                const index = userFiles.findIndex(f => f.id === currentEditingFile.id);
-                if (index !== -1) {
-                    userFiles[index] = currentEditingFile;
-                }
-                saveUserData();
             }
-            currentEditingFile = null;
             renderFileGrid();
             switchView('dashboardView');
         }
 
-        // ==========================================================================
-        // ダッシュボード表示
-        // ==========================================================================
         function renderFileGrid() {
             const grid = document.getElementById('fileGrid');
             grid.innerHTML = '';
-            
-            if (userFiles.length === 0) {
-                grid.innerHTML = '<div style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px 0;">ファイルがありません。上のカードから新規作成してください。</div>';
-                return;
-            }
-
-            userFiles.forEach(file => {
+            files.forEach(file => {
                 const card = document.createElement('div');
                 card.className = 'file-card';
                 card.onclick = () => openFile(file.id);
@@ -583,25 +535,22 @@
             });
         }
 
-        let currentEditingFile = null;
-
         function createNewFile(type) {
             const name = type === 'doc' ? '無題のドキュメント' : '無題のスライド';
             const newFile = {
-                id: 'file-' + Date.now().toString(),
+                id: Date.now().toString(),
                 name: name,
                 type: type,
                 date: new Date().toLocaleDateString(),
                 content: type === 'doc' ? 'ここにテキストを入力...' : '',
-                elements: type === 'slide' ? [{ type: 'text', x: 200, y: 200, text: 'クリックして編集を開始', fontSize: 24, color: '#000000' }] : []
+                elements: type === 'slide' ? [{ type: 'text', x: 200, y: 200, text: 'テキストをダブルクリックして移動', fontSize: 24, color: '#000000' }] : []
             };
-            userFiles.unshift(newFile);
-            saveUserData();
+            files.unshift(newFile);
             openFile(newFile.id);
         }
 
         function openFile(id) {
-            const file = userFiles.find(f => f.id === id);
+            const file = files.find(f => f.id === id);
             if (!file) return;
             currentEditingFile = file;
 
@@ -611,13 +560,13 @@
                 switchView('docEditorView');
             } else if (file.type === 'slide') {
                 document.getElementById('slideTitle').innerText = file.name;
-                slideElements = file.elements || [];
+                slideElements = file.elements;
                 switchView('slideEditorView');
             }
         }
 
         // ==========================================================================
-        // スライド描画・操作エンジン
+        // スライド Canvas 描画エンジン
         // ==========================================================================
         let sCanvas, sCtx;
         let slideElements = [];
@@ -631,7 +580,7 @@
             sCtx = sCanvas.getContext('2d');
             sCanvas.onmousedown = handleCanvasMouseDown;
             sCanvas.onmousemove = handleCanvasMouseMove;
-            sCanvas.onmouseup = () => { isDragging = false; saveUserData(); };
+            sCanvas.onmouseup = () => { isDragging = false; };
             drawSlide();
         }
 
@@ -653,16 +602,8 @@
                         const width = sCtx.measureText(el.text).width;
                         sCtx.strokeRect(el.x - 4, el.y - 4, width + 8, el.fontSize + 8);
                     }
-                } else if (el.type === 'image' && el.imgSrc) {
-                    // Base64またはURL画像オブジェクトの復元描画
-                    if (!el.imgObj) {
-                        el.imgObj = new Image();
-                        el.imgObj.onload = () => drawSlide();
-                        el.imgObj.src = el.imgSrc;
-                    }
-                    if (el.imgObj.complete) {
-                        sCtx.drawImage(el.imgObj, el.x, el.y, el.w, el.h);
-                    }
+                } else if (el.type === 'image' && el.imgObj) {
+                    sCtx.drawImage(el.imgObj, el.x, el.y, el.w, el.h);
                     if (el === selectedElement) {
                         sCtx.strokeStyle = '#1a73e8';
                         sCtx.lineWidth = 1;
@@ -677,12 +618,11 @@
                 type: 'text',
                 x: 150,
                 y: 150,
-                text: 'ダブルクリックして編集',
+                text: '新規テキスト（ドラッグ可能）',
                 fontSize: 24,
                 color: '#1e293b'
             });
             drawSlide();
-            saveUserData();
         }
 
         function triggerImageUpload() {
@@ -701,13 +641,11 @@
                         type: 'image',
                         x: 200,
                         y: 100,
-                        w: 200,
-                        h: (img.height / img.width) * 200,
-                        imgSrc: e.target.result, // LocalStorageに格納可能なBase64文字列
+                        w: 240,
+                        h: (img.height / img.width) * 240,
                         imgObj: img
                     });
                     drawSlide();
-                    saveUserData();
                 }
                 img.src = e.target.result;
             }
