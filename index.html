@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MNDI Local Workspace</title>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
@@ -28,13 +28,13 @@
         .auth-toggle-link { margin-top: 20px; font-size: 14px; color: var(--primary); cursor: pointer; display: inline-block; }
 
         /* 共通レイアウト */
-        .sidebar { width: 260px; background-color: var(--bg-side); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; flex-shrink: 0; }
+        .sidebar { width: 260px; background-color: var(--bg-side); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; flex-shrink: 0; user-select: none; }
         .sidebar-logo { font-weight: bold; font-size: 22px; margin-bottom: 32px; display: flex; align-items: center; gap: 8px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius); cursor: pointer; color: var(--text-sub); font-weight: 500; margin-bottom: 4px; }
         .nav-item:hover, .nav-item.active { background-color: #f1f5f9; color: var(--primary); }
         .sidebar-spacer { flex-grow: 1; }
         .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-        .top-bar { height: 64px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+        .top-bar { height: 64px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; user-select: none; }
         .view-title { font-size: 18px; font-weight: 600; }
         .user-profile { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--primary); }
@@ -42,26 +42,25 @@
         .content-body { flex-grow: 1; overflow: hidden; display: none; flex-direction: column; }
         .content-body.active { display: flex; }
 
-        /* ダッシュボード & 作成されたファイル一覧 */
+        /* ダッシュボード & マイファイル */
         #dashboardContent { padding: 32px; overflow-y: auto; }
-        .creator-row { display: flex; gap: 20px; margin-bottom: 32px; }
+        .creator-row { display: flex; gap: 20px; margin-bottom: 32px; user-select: none; }
         .create-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 150px; text-align: center; cursor: pointer; box-shadow: var(--shadow); }
-        .section-title { font-size: 14px; font-weight: 600; color: var(--text-sub); margin-bottom: 16px; margin-top: 16px; text-transform: uppercase;}
-        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--text-sub); margin-bottom: 16px; margin-top: 16px; text-transform: uppercase; user-select: none;}
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; user-select: none; }
         .template-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; text-align: center; box-shadow: var(--shadow); font-size: 13px; font-weight: bold; }
         
-        /* 改善：ファイルカードのグリッド */
         .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
         .file-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; box-shadow: var(--shadow); position: relative; }
         .file-card-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 80%; }
         .file-card-type { font-size: 11px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; }
-        .file-delete-btn { position: absolute; top: 12px; right: 12px; color: #ef4444; background: none; border: none; cursor: pointer; }
+        .file-delete-btn { position: absolute; top: 12px; right: 12px; color: #ef4444; background: none; border: none; cursor: pointer; z-index: 10; padding: 4px; }
 
         /* ツールバー */
         .editor-toolbar { height: 48px; background-color: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; user-select: none; }
         .color-palette { display: flex; gap: 4px; align-items: center; }
-        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #cbd5e1; touch-action: manipulation; }
-        .action-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; touch-action: manipulation; }
+        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #cbd5e1; }
+        .action-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
         .title-input { border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 14px; outline: none; width: 200px; }
 
         .editor-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; background-color: #f1f5f9; }
@@ -131,16 +130,15 @@
                     <div class="create-card" id="createSlideBtn"><span class="material-icons" style="color:#f4b400">analytics</span><br>新しいスライド</div>
                 </div>
 
-                <!-- 🔥 改善：作成したファイルが並ぶ本物のファイル一覧 -->
                 <div class="section-title">マイファイル一覧</div>
                 <div class="file-grid" id="myFileGrid"></div>
 
                 <div class="section-title">テンプレートから選ぶ</div>
                 <div class="template-grid">
-                    <div class="template-card" onclick="loadTpl('doc','ビジネス報告書\n【概要】\n【実績】')">📄 ビジネス報告書</div>
-                    <div class="template-card" onclick="loadTpl('doc','履歴書\n【氏名】\n【職歴】')">📄 履歴書</div>
-                    <div class="template-card" onclick="loadTpl('slide','会社概要\n\n設立：2026年\n事業：ITツール開発')">📊 会社概要</div>
-                    <div class="template-card" onclick="loadTpl('slide','自己紹介\n\n名前：\n趣味：プログラム開発')">📊 自己紹介</div>
+                    <div class="template-card" id="tplDocBizBtn">📄 ビジネス報告書</div>
+                    <div class="template-card" id="tplDocResumeBtn">📄 履歴書</div>
+                    <div class="template-card" id="tplSlideCompBtn">📊 会社概要</div>
+                    <div class="template-card" id="tplSlideIntroBtn">📊 自己紹介</div>
                 </div>
             </div>
 
@@ -173,18 +171,18 @@
                         <div class="section-title">ページ一覧</div>
                         <div id="slideThumbList"></div>
                         <div class="section-title" style="margin-top:10px;">クイック配置</div>
-                        <div class="layout-option" onclick="applyLayout('center')">中央見出し</div>
-                        <div class="layout-option" onclick="applyLayout('left')">左寄せリスト</div>
-                        <div class="layout-option" onclick="applyLayout('split')">左右2カラム</div>
+                        <div class="layout-option" id="layoutCenterBtn">中央見出し</div>
+                        <div class="layout-option" id="layoutLeftBtn">左寄せリスト</div>
+                        <div class="layout-option" id="layoutSplitBtn">左右2カラム</div>
                     </div>
                     <div class="slide-stage-container">
                         <div class="slide-paper" id="slidePaper" contenteditable="true">スライド 1 のテキスト</div>
                     </div>
                     <div class="theme-sidebar">
                         <div class="section-title">背景テーマ</div>
-                        <div class="theme-option" style="background:#fff; color:#000;" onclick="setTheme('#fff','#000')">ライト</div>
-                        <div class="theme-option" style="background:#1e293b; color:#fff;" onclick="setTheme('#1e293b','#fff')">ダーク</div>
-                        <div class="theme-option" style="background:#f4ecd8; color:#5b4636;" onclick="setTheme('#f4ecd8','#5b4636')">セピア</div>
+                        <div class="theme-option" style="background:#fff; color:#000;" id="themeLightBtn">ライト</div>
+                        <div class="theme-option" style="background:#1e293b; color:#fff;" id="themeDarkBtn">ダーク</div>
+                        <div class="theme-option" style="background:#f4ecd8; color:#5b4636;" id="themeSepiaBtn">セピア</div>
                     </div>
                 </div>
             </div>
@@ -197,10 +195,11 @@
     </div>
 
     <script>
+        // iPad対応：すべてのクリックイベントに「click」を使用しつつ、遅延を防ぐ設計
         const colors = ['#000000','#ef4444','#f97316','#f59e0b','#10b981','#3b82f6','#6366f1','#a855f7','#64748b','#1e293b','#fff0f5','#e6f7f0'];
         let lastSelection = null;
 
-        // iPad対応選択記憶
+        // iPad文字選択保持
         function saveSelection() { const sel = window.getSelection(); if (sel.rangeCount > 0) lastSelection = sel.getRangeAt(0).cloneRange(); }
         document.addEventListener('selectionchange', saveSelection);
         function changeColor(color) { const sel = window.getSelection(); if (lastSelection) { sel.removeAllRanges(); sel.addRange(lastSelection); } document.execCommand('foreColor', false, color); }
@@ -215,31 +214,34 @@
         }
         initColors('docColors'); initColors('slideColors');
 
-        // システム変数
+        // データ管理
         let filesData = JSON.parse(localStorage.getItem('mndi_files') || '[]');
         let activeFileId = null; 
-
         let slidesData = ['スライド 1 のテキスト'];
         let currentSlideIdx = 0;
         let slideBg = '#ffffff', slideFg = '#000000';
 
-        // ログイン系UI
+        // 要素
         const submitBtn = document.getElementById('submitBtn'), toggleAuthMode = document.getElementById('toggleAuthMode'), authSubtitle = document.getElementById('authSubtitle');
         const mainView = document.getElementById('mainView'), authView = document.getElementById('authView'), emailInput = document.getElementById('emailInput'), passwordInput = document.getElementById('passwordInput'), userDisplayName = document.getElementById('userDisplayName'), userAvatar = document.getElementById('userAvatar'), viewTitle = document.getElementById('viewTitle');
         let isLoginMode = true;
         if (!localStorage.getItem("admin@example.com")) localStorage.setItem("admin@example.com", "123456");
 
-        toggleAuthMode.onclick = () => {
+        // イベントリスナーの競合バグを完全解消
+        toggleAuthMode.onclick = (e) => {
+            e.preventDefault();
             isLoginMode = !isLoginMode;
             authSubtitle.textContent = isLoginMode ? 'ローカルワークスペースへログイン' : '新規アカウントの登録（自由に入力可能）';
             submitBtn.textContent = isLoginMode ? 'ログインする' : '新規登録する';
         };
 
-        submitBtn.onclick = () => {
+        submitBtn.onclick = (e) => {
+            e.preventDefault();
             const email = emailInput.value.trim(), password = passwordInput.value.trim();
+            if (!email || !password) { alert('項目を正しく入力してください！'); return; }
             if (isLoginMode && localStorage.getItem(email) === password) loginSuccess(email);
             else if (!isLoginMode && !localStorage.getItem(email)) { localStorage.setItem(email, password); loginSuccess(email); }
-            else alert('入力情報が正しくないか、既に登録されています。');
+            else alert('エラー：認証情報が間違っているか、既に登録されています。');
         };
 
         function loginSuccess(email) {
@@ -253,22 +255,31 @@
             document.getElementById('dashboardContent').classList.remove('active');
             document.getElementById('docEditorContent').classList.remove('active');
             document.getElementById('slideEditorContent').classList.remove('active');
+            document.getElementById('navDashboard').classList.remove('active');
+            document.getElementById('navDocEditor').classList.remove('active');
+            document.getElementById('navSlideEditor').classList.remove('active');
+
             document.getElementById(sec + 'Content').classList.add('active');
+            if(sec === 'dashboard') document.getElementById('navDashboard').classList.add('active');
+            if(sec === 'doc') document.getElementById('navDocEditor').classList.add('active');
+            if(sec === 'slide') document.getElementById('navSlideEditor').classList.add('active');
             viewTitle.textContent = sec === 'dashboard' ? 'ダッシュボード' : sec.toUpperCase() + ' エディタ';
         }
 
-        // 🔥 ファイル作成・管理システム
+        // マイファイルシステム
         function renderFiles() {
             const grid = document.getElementById('myFileGrid');
-            grid.innerHTML = filesData.length === 0 ? '<div style="color:var(--text-sub); font-size:13px;">作成されたファイルはまだありません。</div>' : '';
+            grid.innerHTML = filesData.length === 0 ? '<div style="color:var(--text-sub); font-size:13px; padding:8px;">作成されたファイルはまだありません。</div>' : '';
             filesData.forEach(file => {
                 const card = document.createElement('div'); card.className = 'file-card';
                 card.innerHTML = `
                     <div class="file-card-title">${file.title}</div>
-                    <div class="file-card-type"><span class="material-icons" style="font-size:14px;color:${file.type==='doc'?'#1a73e8':'#f4b400'}">${file.type==='doc'?'article':'analytics'}</span>${file.type==='doc'?'文書':'スライド'}</div>
-                    <button class="file-delete-btn" onclick="deleteFile('${file.id}', event)"><span class="material-icons" style="font-size:16px;">delete</span></button>
+                    <div class="file-card-type"><span class="material-icons" style="font-size:14px;color:${file.type=='doc'?'#1a73e8':'#f4b400'}">${file.type=='doc'?'article':'analytics'}</span>${file.type=='doc'?'文書':'スライド'}</div>
+                    <button class="file-delete-btn" data-id="${file.id}"><span class="material-icons" style="font-size:16px;">delete</span></button>
                 `;
+                // iPadのクリックバグ対策：イベント伝播を安全に止める
                 card.onclick = () => openFile(file.id);
+                card.querySelector('.file-delete-btn').onclick = (e) => { e.stopPropagation(); deleteFile(file.id); };
                 grid.appendChild(card);
             });
         }
@@ -288,11 +299,9 @@
             showSec('slide');
         };
 
-        // 保存システム
         document.getElementById('saveDocBtn').onclick = () => {
             const title = document.getElementById('docTitleInput').value.trim() || '無題の文書';
-            const content = document.getElementById('documentPaper').innerHTML;
-            saveToFileSystem(activeFileId, title, 'doc', content);
+            saveToFileSystem(activeFileId, title, 'doc', document.getElementById('documentPaper').innerHTML);
         };
 
         document.getElementById('saveSlideBtn').onclick = () => {
@@ -313,26 +322,21 @@
             const file = filesData.find(f => f.id === id); if (!file) return;
             activeFileId = file.id;
             if (file.type === 'doc') {
-                document.getElementById('docTitleInput').value = file.title;
-                document.getElementById('documentPaper').innerHTML = file.content;
-                showSec('doc');
+                document.getElementById('docTitleInput').value = file.title; document.getElementById('documentPaper').innerHTML = file.content; showSec('doc');
             } else {
-                document.getElementById('slideTitleInput').value = file.title;
-                slidesData = JSON.parse(file.content); currentSlideIdx = 0;
-                loadCurrentSlideText(); renderThumbs();
-                showSec('slide');
+                document.getElementById('slideTitleInput').value = file.title; slidesData = JSON.parse(file.content); currentSlideIdx = 0;
+                loadCurrentSlideText(); renderThumbs(); showSec('slide');
             }
         }
 
-        window.deleteFile = function(id, e) {
-            e.stopPropagation();
+        function deleteFile(id) {
             if(!confirm('本当に削除しますか？')) return;
             filesData = filesData.filter(f => f.id !== id);
             localStorage.setItem('mndi_files', JSON.stringify(filesData));
             renderFiles();
-        };
+        }
 
-        // スライド機能
+        // スライドシステム
         function renderThumbs() {
             const list = document.getElementById('slideThumbList'); list.innerHTML = '';
             slidesData.forEach((c, idx) => {
@@ -346,7 +350,6 @@
         document.getElementById('addSlidePageBtn').onclick = () => { saveCurrentSlideText(); slidesData.push(`新しいスライド ${slidesData.length + 1}`); currentSlideIdx = slidesData.length - 1; loadCurrentSlideText(); renderThumbs(); };
         document.getElementById('slidePaper').oninput = () => saveCurrentSlideText();
 
-        // ページ追加
         document.getElementById('addDocPageBtn').onclick = () => {
             const p = document.createElement('div'); p.className = 'document-paper'; p.contentEditable = 'true'; p.style.marginTop = '20px'; p.innerText = '新しいページ...';
             document.getElementById('docContainer').appendChild(p);
@@ -358,12 +361,31 @@
         function updatePresSlide() { presSlide.innerText = slidesData[currentSlideIdx]; presSlide.style.backgroundColor = slideBg; presSlide.style.color = slideFg; }
         presView.onclick = () => { if(currentSlideIdx < slidesData.length - 1) { currentSlideIdx++; updatePresSlide(); } else { isPresentation = false; presView.classList.remove('active'); renderThumbs(); loadCurrentSlideText(); } };
 
+        // ナビボタン
+        document.getElementById('navDashboard').onclick = () => showSec('dashboard');
+        document.getElementById('navDocEditor').onclick = () => showSec('doc');
+        document.getElementById('navSlideEditor').onclick = () => showSec('slide');
+
+        // テンプレート & クイック配置・テーマイベントの完全紐付け（onclickへの統一）
+        document.getElementById('tplDocBizBtn').onclick = () => loadTpl('doc', 'ビジネス報告書\n【概要】\n【実績】');
+        document.getElementById('tplDocResumeBtn').onclick = () => loadTpl('doc', '履歴書\n【氏名】\n【職歴】');
+        document.getElementById('tplSlideCompBtn').onclick = () => loadTpl('slide', '会社概要\n\n設立：2026年\n事業：ITツール開発');
+        document.getElementById('tplSlideIntroBtn').onclick = () => loadTpl('slide', '自己紹介\n\n名前：\n趣味：プログラム開発');
+
         function loadTpl(type, txt) {
             activeFileId = 'file_' + Date.now();
             if(type==='doc') { document.getElementById('docTitleInput').value = 'テンプレート文書'; document.getElementById('documentPaper').innerText = txt; showSec('doc'); }
             else { document.getElementById('slideTitleInput').value = 'テンプレートスライド'; slidesData = [txt]; currentSlideIdx = 0; loadCurrentSlideText(); renderThumbs(); showSec('slide'); }
         }
+
+        document.getElementById('themeLightBtn').onclick = () => setTheme('#fff', '#000');
+        document.getElementById('themeDarkBtn').onclick = () => setTheme('#1e293b', '#fff');
+        document.getElementById('themeSepiaBtn').onclick = () => setTheme('#f4ecd8', '#5b4636');
         function setTheme(bg, fg) { slideBg = bg; slideFg = fg; const p = document.getElementById('slidePaper'); p.style.backgroundColor = bg; p.style.color = fg; }
+
+        document.getElementById('layoutCenterBtn').onclick = () => applyLayout('center');
+        document.getElementById('layoutLeftBtn').onclick = () => applyLayout('left');
+        document.getElementById('layoutSplitBtn').onclick = () => applyLayout('split');
         function applyLayout(type) {
             const p = document.getElementById('slidePaper');
             if (type === 'center') p.innerText = '【タイトル】\nここに中央サブタイトル';
@@ -371,6 +393,7 @@
             else if (type === 'split') p.innerText = '左のカラム  |  右のカラム';
             saveCurrentSlideText();
         }
+
         renderThumbs();
     </script>
 </body>
