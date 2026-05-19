@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNDI Workspace</title>
+    <!-- Google Material Icons -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-side: #ffffff;
+            --primary: #1a73e8; /* Google Blue / Windows Accent */
+            --primary-hover: #1557b0;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* 画面切り替え管理 */
+        .app-view { display: none; width: 100%; height: 100%; }
+        .app-view.active { display: flex; }
+
+        /* ==========================================================================
+           1. 認証画面 (Auth View - ログイン & 新規登録)
+           ========================================================================== */
+        #authView {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #eef2f7, #e0e7ff);
+        }
+        .auth-card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .auth-logo {
+            font-weight: bold;
+            font-size: 28px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+        .auth-subtitle { color: var(--text-sub); margin-bottom: 24px; font-size: 14px;}
+        .auth-input-group { text-align: left; margin-bottom: 20px; }
+        .auth-input-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-sub); }
+        .auth-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .auth-input:focus { border-color: var(--primary); }
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .auth-btn:hover { background-color: var(--primary-hover); }
+        
+        /* ログイン/新規登録の切り替えリンク */
+        .auth-switch {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+        .auth-switch span {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .auth-switch span:hover {
+            text-decoration: underline;
+        }
+
+        /* ==========================================================================
+           共通レイアウト (Sidebar & Main)
+           ========================================================================== */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-side);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+        }
+        .sidebar-logo {
+            font-weight: bold;
+            font-size: 22px;
+            padding-left: 12px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--text-sub);
+            font-weight: 500;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+        }
+        .nav-item:hover, .nav-item.active {
+            background-color: #f1f5f9;
+            color: var(--primary);
+        }
+        .nav-item .material-icons { font-size: 22px; }
+        .sidebar-spacer { flex-grow: 1; }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        .top-bar {
+            height: 64px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+        .view-title { font-size: 18px; font-weight: 600; }
+        .user-profile { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500;}
+        .avatar { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--primary); text-transform: uppercase;}
+
+        /* ==========================================================================
+           2. ダッシュボード画面 (Dashboard View)
+           ========================================================================== */
+        .dashboard-body { padding: 32px; overflow-y: auto; flex-grow: 1; }
+        .creator-row { display: flex; gap: 20px; margin-bottom: 40px; }
+        .create-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 160px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+        .create-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .create-card .material-icons { font-size: 40px; margin-bottom: 12px; }
+        .create-card.doc .material-icons { color: #1a73e8; }
+        .create-card.slide .material-icons { color: #f4b400; }
+        .create-card span { display: block; font-size: 14px; font-weight: 500; }
+
+        .section-title { font-size: 14px; font-weight: 600; color: var(--text-sub); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .file-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: border 0.2s;
+        }
+        .file-card:hover { border-color: var(--primary); }
+        .file-icon-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .file-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-date { font-size: 12px; color: var(--text-sub); }
+
+        /* ==========================================================================
+           3. ドキュメントエディタ (Doc Editor View)
+           ========================================================================== */
+        .editor-toolbar {
+            height: 48px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 8px;
+        }
+        .toolbar-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #475569;
+        }
+        .toolbar-btn:hover { background-color: #f1f5f9; color: var(--text-main); }
+        .editor-container {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            background-color: #f1f5f9;
+        }
+        .document-paper {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            min-height: 1000px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 60px 80px;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* ==========================================================================
+           4. スライドエディタ (Slide Editor View)
+           ========================================================================== */
+        .slide-workspace { flex-grow: 1; display: flex; background-color: #e2e8f0; overflow: hidden; }
+        .slide-sidebar {
+            width: 180px;
+            background: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            gap: 12px;
+            overflow-y: auto;
+        }
+        .slide-thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #f8fafc;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+        .slide-thumb.active { border-color: var(--primary); background-color: #eff6ff; }
+        .add-slide-btn {
+            border: 2px dashed var(--border);
+            background: none;
+            padding: 10px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+        .add-slide-btn:hover { border-color: var(--primary); color: var(--primary); }
+        
+        .slide-stage-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+        #slideCanvas {
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: default;
+        }
+        #imageUpload { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+       1. 認証画面（新規登録 / ログイン 兼用）
+       ========================================== -->
+    <div id="authView" class="app-view active">
+        <div class="auth-card" id="authCard">
+            <div class="auth-logo">MNDI Workspace</div>
+            <div class="auth-subtitle" id="authSubtitle">アカウントにログインして開始します</div>
+            
+            <div class="auth-input-group">
+                <label>メールアドレス</label>
+                <input type="email" class="auth-input" id="authEmail" placeholder="example@domain.com">
+            </div>
+            <div class="auth-input-group">
+                <label>パスワード</label>
+                <input type="password" class="auth-input" id="authPassword" placeholder="パスワードを入力">
+            </div>
+            
+            <!-- 動的に切り替わるメインボタン -->
+            <button class="auth-btn" id="authMainBtn" onclick="handleAuthSubmit()">ログイン</button>
+            
+            <!-- 新規登録とログインの切り替えリンク -->
+            <div class="auth-switch" id="authSwitchArea">
+                アカウントをお持ちでないですか？ <span onclick="toggleAuthMode(true)">新規登録</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+       2. ダッシュボード画面
+       ========================================== -->
+    <div id="dashboardView" class="app-view">
+        <div class="sidebar">
+            <div class="sidebar-logo"><span class="material-icons" style="color:var(--primary)">cloud</span>MNDI</div>
+            <div class="nav-item active"><span class="material-icons">folder</span>すべてのファイル</div>
+            <div class="nav-item"><span class="material-icons">star</span>お気に入り</div>
+            <div class="sidebar-spacer"></div>
+            <div class="nav-item" onclick="logout()"><span class="material-icons">logout</span>ログアウト</div>
+        </div>
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="view-title">マイ ドライブ</div>
+                <div class="user-profile">
+                    <span id="userDisplayName">-</span>
+                    <div class="avatar" id="userAvatar">U</div>
+                </div>
+            </div>
+            <div class="dashboard-body">
+                <div class="section-title">新規作成</div>
+                <div class="creator-row">
+                    <div class="create-card doc" onclick="createNewFile('doc')">
+                        <span class="material-icons">description</span>
+                        <span>ドキュメント</span>
+                    </div>
+                    <div class="create-card slide" onclick="createNewFile('slide')">
+                        <span class="material-icons">slideshow</span>
+                        <span>スライド</span>
+                    </div>
+                </div>
+                <div class="section-title">最近使用したファイル</div>
+                <div class="file-grid" id="fileGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+       3. ドキュメントエディタ画面
+       ========================================== -->
+    <div id="docEditorView" class="app-view">
+        <div class="sidebar">
+            <div class="sidebar-logo" onclick="backToDashboard()" style="cursor:pointer;"><span class="material-icons">arrow_back</span>戻る</div>
+            <div class="nav-item active"><span class="material-icons">edit</span>編集</div>
+        </div>
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="view-title" id="docTitle">無題のドキュメント</div>
+                <button class="auth-btn" style="width:auto; padding:8px 16px; margin:0;" onclick="backToDashboard()">保存して閉じる</button>
+            </div>
+            <div class="editor-toolbar">
+                <button class="toolbar-btn" onclick="document.execCommand('bold')"><span class="material-icons">format_bold</span></button>
+                <button class="toolbar-btn" onclick="document.execCommand('italic')"><span class="material-icons">format_italic</span></button>
+                <button class="toolbar-btn" onclick="document.execCommand('underline')"><span class="material-icons">format_underlined</span></button>
+                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 8px;"></div>
+                <button class="toolbar-btn" onclick="document.execCommand('justifyLeft')"><span class="material-icons">format_align_left</span></button>
+                <button class="toolbar-btn" onclick="document.execCommand('justifyCenter')"><span class="material-icons">format_align_center</span></button>
+                <button class="toolbar-btn" onclick="document.execCommand('justifyRight')"><span class="material-icons">format_align_right</span></button>
+            </div>
+            <div class="editor-container">
+                <div class="document-paper" contenteditable="true" id="docBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+       4. スライドエディタ画面
+       ========================================== -->
+    <div id="slideEditorView" class="app-view">
+        <div class="sidebar">
+            <div class="sidebar-logo" onclick="backToDashboard()" style="cursor:pointer;"><span class="material-icons">arrow_back</span>戻る</div>
+            <div class="nav-item active"><span class="material-icons">layers</span>キャンバス</div>
+            <div class="sidebar-spacer"></div>
+            <button class="auth-btn" style="padding:10px; font-size:14px;" onclick="backToDashboard()">保存</button>
+        </div>
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="view-title" id="slideTitle">無題のスライド</div>
+                <div style="display:flex; gap:10px;">
+                    <button class="toolbar-btn" style="background:#f1f5f9" onclick="triggerImageUpload()">
+                        <span class="material-icons" style="margin-right:6px;">image</span>画像を挿入
+                    </button>
+                    <input type="file" id="imageUpload" accept="image/*" onchange="handleImageFile(event)">
+                </div>
+            </div>
+            <div class="editor-toolbar">
+                <button class="toolbar-btn" onclick="addTextToSlide()"><span class="material-icons">text_fields</span>テキスト追加</button>
+            </div>
+            <div class="slide-workspace">
+                <div class="slide-sidebar">
+                    <div class="slide-thumb active">スライド 1</div>
+                </div>
+                <div class="slide-stage-container">
+                    <canvas id="slideCanvas" width="800" height="450"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================================================
+        // 状態管理 & 擬似データベース (LocalStorageシステム)
+        // ==========================================================================
+        let isSignUpMode = false; // 新規登録モード判定フラグ
+        let currentUser = null;   // 現在ログインしているユーザーのメールアドレス
+        let userFiles = [];       // 現在のユーザーのファイルリスト
+
+        // ローカルストレージからユーザーのアカウント一覧を取得
+        function getRegisteredUsers() {
+            const users = localStorage.getItem('mndi_users');
+            return users ? JSON.parse(users) : {};
+        }
+
+        // ==========================================================================
+        // 認証画面の制御（ログイン ⇄ 新規登録 切り替え）
+        // ==========================================================================
+        function toggleAuthMode(toSignUp) {
+            isSignUpMode = toSignUp;
+            const subtitle = document.getElementById('authSubtitle');
+            const mainBtn = document.getElementById('authMainBtn');
+            const switchArea = document.getElementById('authSwitchArea');
+            
+            if (isSignUpMode) {
+                subtitle.innerText = '新しいワークスペースアカウントを作成します';
+                mainBtn.innerText = 'アカウントを作成';
+                switchArea.innerHTML = 'すでにアカウントをお持ちですか？ <span onclick="toggleAuthMode(false)">ログイン</span>';
+            } else {
+                subtitle.innerText = 'アカウントにログインして開始します';
+                mainBtn.innerText = 'ログイン';
+                switchArea.innerHTML = 'アカウントをお持ちでないですか？ <span onclick="toggleAuthMode(true)">新規登録</span>';
+            }
+        }
+
+        function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+
+            if (!email || !password) {
+                alert('メールアドレスとパスワードを入力してください。');
+                return;
+            }
+
+            const users = getRegisteredUsers();
+
+            if (isSignUpMode) {
+                // --- 新規登録ロジック ---
+                if (users[email]) {
+                    alert('このメールアドレスは既に登録されています。');
+                    return;
+                }
+                // パスワードと、ユーザーごとの初期空のファイル枠を作成
+                users[email] = { password: password, files: [
+                    { id: 'init-1', name: 'ようこそ！最初のドキュメント', type: 'doc', date: new Date().toLocaleDateString(), content: '<h2>MNDI Workspace へようこそ！</h2><p>これは自動で作成された最初のドキュメントです。自由に編集を行ってください。</p>' }
+                ]};
+                localStorage.setItem('mndi_users', JSON.stringify(users));
+                alert('アカウントの作成が完了しました！そのままログインします。');
+            } else {
+                // --- ログインロジック ---
+                if (!users[email] || users[email].password !== password) {
+                    alert('メールアドレスまたはパスワードが正しくありません。');
+                    return;
+                }
+            }
+
+            // 認証成功時の処理
+            currentUser = email;
+            document.getElementById('userDisplayName').innerText = email;
+            document.getElementById('userAvatar').innerText = email.charAt(0);
+            
+            // ユーザーデータの読み込み
+            userFiles = users[email].files || [];
+            
+            renderFileGrid();
+            switchView('dashboardView');
+        }
+
+        function logout() {
+            currentUser = null;
+            userFiles = [];
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authPassword').value = '';
+            toggleAuthMode(false);
+            switchView('authView');
+        }
+
+        // データの永続化（LocalStorageへの保存）
+        function saveUserData() {
+            if (!currentUser) return;
+            const users = getRegisteredUsers();
+            if (users[currentUser]) {
+                users[currentUser].files = userFiles;
+                localStorage.setItem('mndi_users', JSON.stringify(users));
+            }
+        }
+
+        // ==========================================================================
+        // 画面遷移管理
+        // ==========================================================================
+        function switchView(viewId) {
+            document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if(viewId === 'slideEditorView') {
+                initSlideCanvas();
+            }
+        }
+
+        function backToDashboard() {
+            if (currentEditingFile) {
+                if (currentEditingFile.type === 'doc') {
+                    currentEditingFile.content = document.getElementById('docBody').innerHTML;
+                }
+                // ファイル配列に変更を反映させて保存
+                const index = userFiles.findIndex(f => f.id === currentEditingFile.id);
+                if (index !== -1) {
+                    userFiles[index] = currentEditingFile;
+                }
+                saveUserData();
+            }
+            currentEditingFile = null;
+            renderFileGrid();
+            switchView('dashboardView');
+        }
+
+        // ==========================================================================
+        // ダッシュボード表示
+        // ==========================================================================
+        function renderFileGrid() {
+            const grid = document.getElementById('fileGrid');
+            grid.innerHTML = '';
+            
+            if (userFiles.length === 0) {
+                grid.innerHTML = '<div style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px 0;">ファイルがありません。上のカードから新規作成してください。</div>';
+                return;
+            }
+
+            userFiles.forEach(file => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                card.onclick = () => openFile(file.id);
+                
+                const icon = file.type === 'doc' ? 'description' : 'slideshow';
+                const iconColor = file.type === 'doc' ? '#1a73e8' : '#f4b400';
+
+                card.innerHTML = `
+                    <div class="file-icon-row">
+                        <span class="material-icons" style="color:${iconColor}; font-size:28px;">${icon}</span>
+                        <span class="material-icons" style="color:var(--text-sub); font-size:18px;">more_vert</span>
+                    </div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-date">${file.date}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        let currentEditingFile = null;
+
+        function createNewFile(type) {
+            const name = type === 'doc' ? '無題のドキュメント' : '無題のスライド';
+            const newFile = {
+                id: 'file-' + Date.now().toString(),
+                name: name,
+                type: type,
+                date: new Date().toLocaleDateString(),
+                content: type === 'doc' ? 'ここにテキストを入力...' : '',
+                elements: type === 'slide' ? [{ type: 'text', x: 200, y: 200, text: 'クリックして編集を開始', fontSize: 24, color: '#000000' }] : []
+            };
+            userFiles.unshift(newFile);
+            saveUserData();
+            openFile(newFile.id);
+        }
+
+        function openFile(id) {
+            const file = userFiles.find(f => f.id === id);
+            if (!file) return;
+            currentEditingFile = file;
+
+            if (file.type === 'doc') {
+                document.getElementById('docTitle').innerText = file.name;
+                document.getElementById('docBody').innerHTML = file.content;
+                switchView('docEditorView');
+            } else if (file.type === 'slide') {
+                document.getElementById('slideTitle').innerText = file.name;
+                slideElements = file.elements || [];
+                switchView('slideEditorView');
+            }
+        }
+
+        // ==========================================================================
+        // スライド描画・操作エンジン
+        // ==========================================================================
+        let sCanvas, sCtx;
+        let slideElements = [];
+        let selectedElement = null;
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        function initSlideCanvas() {
+            sCanvas = document.getElementById('slideCanvas');
+            sCtx = sCanvas.getContext('2d');
+            sCanvas.onmousedown = handleCanvasMouseDown;
+            sCanvas.onmousemove = handleCanvasMouseMove;
+            sCanvas.onmouseup = () => { isDragging = false; saveUserData(); };
+            drawSlide();
+        }
+
+        function drawSlide() {
+            sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
+            sCtx.fillStyle = '#ffffff';
+            sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+            slideElements.forEach(el => {
+                if (el.type === 'text') {
+                    sCtx.fillStyle = el.color;
+                    sCtx.font = `${el.fontSize}px sans-serif`;
+                    sCtx.textBaseline = 'top';
+                    sCtx.fillText(el.text, el.x, el.y);
+                    
+                    if (el === selectedElement) {
+                        sCtx.strokeStyle = '#1a73e8';
+                        sCtx.lineWidth = 1;
+                        const width = sCtx.measureText(el.text).width;
+                        sCtx.strokeRect(el.x - 4, el.y - 4, width + 8, el.fontSize + 8);
+                    }
+                } else if (el.type === 'image' && el.imgSrc) {
+                    // Base64またはURL画像オブジェクトの復元描画
+                    if (!el.imgObj) {
+                        el.imgObj = new Image();
+                        el.imgObj.onload = () => drawSlide();
+                        el.imgObj.src = el.imgSrc;
+                    }
+                    if (el.imgObj.complete) {
+                        sCtx.drawImage(el.imgObj, el.x, el.y, el.w, el.h);
+                    }
+                    if (el === selectedElement) {
+                        sCtx.strokeStyle = '#1a73e8';
+                        sCtx.lineWidth = 1;
+                        sCtx.strokeRect(el.x, el.y, el.w, el.h);
+                    }
+                }
+            });
+        }
+
+        function addTextToSlide() {
+            slideElements.push({
+                type: 'text',
+                x: 150,
+                y: 150,
+                text: 'ダブルクリックして編集',
+                fontSize: 24,
+                color: '#1e293b'
+            });
+            drawSlide();
+            saveUserData();
+        }
+
+        function triggerImageUpload() {
+            document.getElementById('imageUpload').click();
+        }
+
+        function handleImageFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    slideElements.push({
+                        type: 'image',
+                        x: 200,
+                        y: 100,
+                        w: 200,
+                        h: (img.height / img.width) * 200,
+                        imgSrc: e.target.result, // LocalStorageに格納可能なBase64文字列
+                        imgObj: img
+                    });
+                    drawSlide();
+                    saveUserData();
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function handleCanvasMouseDown(e) {
+            const rect = sCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            selectedElement = null;
+
+            for (let i = slideElements.length - 1; i >= 0; i--) {
+                const el = slideElements[i];
+                if (el.type === 'text') {
+                    sCtx.font = `${el.fontSize}px sans-serif`;
+                    const width = sCtx.measureText(el.text).width;
+                    if (mouseX >= el.x && mouseX <= el.x + width && mouseY >= el.y && mouseY <= el.y + el.fontSize) {
+                        selectedElement = el;
+                        break;
+                    }
+                } else if (el.type === 'image') {
+                    if (mouseX >= el.x && mouseX <= el.x + el.w && mouseY >= el.y && mouseY <= el.y + el.h) {
+                        selectedElement = el;
+                        break;
+                    }
+                }
+            }
+
+            if (selectedElement) {
+                isDragging = true;
+                dragOffsetX = mouseX - selectedElement.x;
+                dragOffsetY = mouseY - selectedElement.y;
+            }
+            drawSlide();
+        }
+
+        function handleCanvasMouseMove(e) {
+            if (!isDragging || !selectedElement) return;
+            const rect = sCanvas.getBoundingClientRect();
+            selectedElement.x = e.clientX - rect.left - dragOffsetX;
+            selectedElement.y = e.clientY - rect.top - dragOffsetY;
+            drawSlide();
+        }
+    </script>
+</body>
+</html>
